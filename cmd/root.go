@@ -7,21 +7,21 @@ import (
 )
 
 const (
-	US = "us"
+	US       = "us"
 	FRACTION = "fraction"
-	DECIMAL = "decimal"
+	DECIMAL  = "decimal"
 )
 
 const (
-	SLASH = "/"
+	SLASH  = "/"
 	HYPHEN = "-"
 )
 
 var (
 	rootCmd = &cobra.Command{
-		Use: "odds",
+		Use:   "odds",
 		Short: `A CLI to calculate different odds methods`,
-		Args: cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			oddStr := args[0]
 			odds := NewOdds(oddStr)

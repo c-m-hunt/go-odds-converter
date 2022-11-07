@@ -55,7 +55,15 @@ func Test_parseFraction(t *testing.T) {
 			args: args{
 				odd: "1/2",
 			},
-			want:    0.5,
+			want:    1.5,
+			wantErr: false,
+		},
+		{
+			name: "9/4",
+			args: args{
+				odd: "9/4",
+			},
+			want:    3.25,
 			wantErr: false,
 		},
 	}
