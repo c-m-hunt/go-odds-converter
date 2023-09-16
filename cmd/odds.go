@@ -8,7 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 )
 
 type Odds struct {
@@ -26,8 +27,11 @@ type OddsConverter interface {
 	GetReciprocalOdds() Odds
 }
 
-func NewOdds(odd string) Odds {
-	guess := guessOddsType(odd)
+func NewOdds(odd string) (Odds, error) {
+	guess, err := guessOddsType(odd)
+	if err != nil {
+		return Odds{}, err
+	}
 	decimalOdds := 0.0
 	switch guess {
 	case "decimal":
@@ -37,7 +41,7 @@ func NewOdds(odd string) Odds {
 	case "us":
 		decimalOdds, _ = parseUS(odd)
 	}
-	return Odds{decimalOdds: decimalOdds}
+	return Odds{decimalOdds: decimalOdds}, nil
 }
 
 func parseDecimal(odd string) (float64, error) {
@@ -70,16 +74,23 @@ func parseUS(odd string) (float64, error) {
 	}
 }
 
-func guessOddsType(odd string) string {
+func guessOddsType(odd string) (string, error) {
 	if strings.HasPrefix(odd, "-") || strings.HasPrefix(odd, "+") {
-		return US
+		return US, nil
 	}
 	for _, divider := range []string{SLASH, HYPHEN} {
 		if strings.Contains(odd, divider) {
-			return FRACTION
+			return FRACTION, nil
 		}
 	}
-	return DECIMAL
+	decVal, err := parseDecimal(odd)
+	if err != nil {
+		return "", err
+	}
+	if decVal <= 1 {
+		return "", errors.New("Decimal value must be greater than 0")
+	}
+	return DECIMAL, err
 }
 
 func (o Odds) GetReciprocalOdds() Odds {
@@ -123,19 +134,28 @@ func (o Odds) ToImpliedProbabilityString() string {
 }
 
 func (o Odds) Display(writer io.Writer) {
-	table := tablewriter.NewWriter(writer)
+	t := table.NewWriter()
+	t.SetOutputMirror(writer)
 	ro := o.GetReciprocalOdds()
-	table.Append([]string{"Decimal", o.ToDecimalString()})
-	table.Append([]string{"Fraction", o.ToFraction()})
-	table.Append([]string{"US", o.ToUSString()})
-	table.Append([]string{"Implied Probability", o.ToImpliedProbabilityString()})
-	table.Append([]string{"", ""})
-	table.Append([]string{"Reciprocal Decimal", ro.ToDecimalString()})
-	table.Append([]string{"Reciprocal Fraction", ro.ToFraction()})
-	table.Append([]string{"Reciprocal US", ro.ToUSString()})
-	table.Append([]string{"Reciprocal Implied Probability", ro.ToImpliedProbabilityString()})
-	table.SetAlignment(tablewriter.ALIGN_LEFT)
-	table.Render()
+	t.AppendHeader(table.Row{"Type", "Value"})
+	t.AppendRows([]table.Row{
+		{"Decimal", o.ToDecimalString()},
+		{"Fraction", o.ToFraction()},
+		{"US", o.ToUSString()},
+		{"Implied Probability", o.ToImpliedProbabilityString()},
+	})
+	t.AppendSeparator()
+	t.AppendRows([]table.Row{
+		{"Reciprocal Decimal", ro.ToDecimalString()},
+		{"Reciprocal Fraction", ro.ToFraction()},
+		{"Reciprocal US", ro.ToUSString()},
+		{"Reciprocal Implied Probability", ro.ToImpliedProbabilityString()},
+	})
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, Align: text.AlignLeft},
+		{Number: 2, Align: text.AlignRight},
+	})
+	t.Render()
 }
 
 func getFraction(dec float64, divider string) string {

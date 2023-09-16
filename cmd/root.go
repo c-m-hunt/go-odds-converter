@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +26,11 @@ var (
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			oddStr := args[0]
-			odds := NewOdds(oddStr)
+			odds, err := NewOdds(oddStr)
+			if err != nil {
+				log.Error(err)
+				os.Exit(0)
+			}
 			odds.Display(os.Stdout)
 		},
 	}

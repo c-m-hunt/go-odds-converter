@@ -80,3 +80,95 @@ func Test_parseFraction(t *testing.T) {
 		})
 	}
 }
+
+func TestOdds_ToUSString(t *testing.T) {
+	type fields struct {
+		decimalOdds float64
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		{
+			name: "1.5",
+			fields: fields{
+				decimalOdds: 1.5,
+			},
+			want: "-200",
+		},
+		{
+			name: "3.25",
+			fields: fields{
+				decimalOdds: 3.25,
+			},
+			want: "+225",
+		},
+		{
+			name: "100",
+			fields: fields{
+				decimalOdds: 100,
+			},
+			want: "+9900",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := Odds{
+				decimalOdds: tt.fields.decimalOdds,
+			}
+			if got := o.ToUSString(); got != tt.want {
+				t.Errorf("Odds.ToUSString() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_guessOddsType(t *testing.T) {
+	type args struct {
+		odd string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			"Dec 1.5",
+			args{
+				odd: "1.5",
+			},
+			DECIMAL,
+			false,
+		},
+		{
+			"US +100",
+			args{
+				odd: "+100",
+			},
+			US,
+			false,
+		},
+		{
+			"Dec 1",
+			args{
+				odd: "1",
+			},
+			"",
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := guessOddsType(tt.args.odd)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("guessOddsType() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != tt.want {
+				t.Errorf("guessOddsType() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
