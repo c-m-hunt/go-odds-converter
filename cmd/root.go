@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -25,7 +26,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			oddStr := args[0]
 			odds := NewOdds(oddStr)
-			odds.Display()
+			odds.Display(os.Stdout)
 		},
 	}
 )

@@ -3,8 +3,8 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 
@@ -122,8 +122,8 @@ func (o Odds) ToImpliedProbabilityString() string {
 	return fmt.Sprintf("%.2f%%", o.ToImpliedProbability()*100)
 }
 
-func (o Odds) Display() {
-	table := tablewriter.NewWriter(os.Stdout)
+func (o Odds) Display(writer io.Writer) {
+	table := tablewriter.NewWriter(writer)
 	ro := o.GetReciprocalOdds()
 	table.Append([]string{"Decimal", o.ToDecimalString()})
 	table.Append([]string{"Fraction", o.ToFraction()})
